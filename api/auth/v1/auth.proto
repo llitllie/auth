@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package blog.api.v1;
+
+option go_package = "github.com/llitllie/auth/api/auth/v1;v1";
+
+import "google/api/annotations.proto";
+// the validate rules:
+// https://github.com/envoyproxy/protoc-gen-validate
+import "validate/validate.proto";
+import "errors/errors.proto";
+
+service Auth {
+    rpc CreateAccount (CreateAccountRequest) returns (CreateAccountReply) {
+        option (google.api.http) = {
+            post: "/v1/accounts"
+            body: "*"
+        };
+    }
+    rpc UpdateAccount (UpdateAccountRequest) returns (UpdateAccountReply) {
+        option (google.api.http) = {
+            put: "/v1/accounts/{id}"
+            body: "*"
+        };
+    }
+    rpc DeleteAccount (DeleteAccountRequest) returns (DeleteAccountReply) {
+        option (google.api.http) = {
+            delete: "/v1/accounts/{id}"
+        };
+    }
+    rpc GetAccount (GetAccountRequest) returns (GetAccountReply) {
+        option (google.api.http) = {
+            get: "/v1/accounts/{id}"
+        };
+    }
+    rpc ListAccount (ListAccountRequest) returns (ListAccountReply) {
+        option (google.api.http) = {
+            get: "/v1/accounts"
+        };
+    }
+    rpc CreateToken (CreateTokenRequest) returns (CreateTokenReply) {
+        option (google.api.http) = {
+            post: "/v1/tokens/generate"
+            body: "*"
+        };
+    }
+    rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenReply) {
+        option (google.api.http) = {
+            post: "/v1/tokens/refresh"
+            body: "*"
+        };
+    }
+    rpc RevokeToken (RevokeTokenRequest) returns (RevokeTokenReply) {
+        option (google.api.http) = {
+            post: "/v1/tokens/revoke"
+            body: "*"
+        };
+    }
+}
+
+message Account {
+    int64 id = 1;
+    string email = 2;
+    string type = 3;
+    bool status = 4;
+}
+
+message CreateAccountRequest {
+    string email = 1 [(validate.rules).string.email = true]; // the email must be valid
+    string secret = 2 [(validate.rules).string = {min_len: 9, max_len: 50}]; // the secret  must be between 5 and 50 character
+    string type = 3 [(validate.rules).string = {in: ["user", "service"]}]; // the type must be user or service
+    bool status = 4;
+}
+
+message CreateAccountReply {
+    Account Account = 1;
+}
+
+message UpdateAccountRequest {
+    int64 id = 1 [(validate.rules).int64 = {gt: 0}];
+    string email = 2 [(validate.rules).string ={ignore_empty: true, email: true}]; // the email must be valid
+    string secret = 3 [(validate.rules).string = {ignore_empty: true, min_len: 9, max_len: 50}]; // the secret  must be between 5 and 50 character
+    string type = 4 [(validate.rules).string = {ignore_empty: true, in: ["user", "service"]}]; // the type must be user or service
+    bool status = 5;
+}
+
+message UpdateAccountReply {
+    Account Account = 1;
+}
+
+message DeleteAccountRequest {
+    int64 id = 1;
+}
+message DeleteAccountReply {
+}
+
+message GetAccountRequest {
+    int64 id = 1;
+}
+
+message GetAccountReply {
+    Account Account = 1;
+}
+
+message ListAccountRequest {
+}
+
+message ListAccountReply {
+    repeated Account results = 1;
+}
+
+message Token {
+    string access_token = 1;
+    string refresh_token = 2;
+}
+
+message CreateTokenRequest {
+    string email = 1 [(validate.rules).string.email = true];
+    string secret = 2 [(validate.rules).string = {min_len: 9, max_len: 50}];
+}
+
+message CreateTokenReply {
+    Token token = 1;
+}
+
+message RefreshTokenRequest {
+    string token = 1;
+}
+
+message RefreshTokenReply {
+    Token token = 1;
+}
+
+message RevokeTokenRequest {
+    string token = 1;
+}
+
+message RevokeTokenReply {
+}
+
+enum ErrorReason {
+  option (errors.default_code) = 500;
+
+  USER_NOT_FOUND = 0 [(errors.code) = 404];
+  AUTH_FAILED = 1 [(errors.code) = 400];
+}
