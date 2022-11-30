@@ -9,7 +9,9 @@ package main
 import (
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/llitllie/auth/internal/biz"
 	"github.com/llitllie/auth/internal/conf"
+	"github.com/llitllie/auth/internal/data"
 	"github.com/llitllie/auth/internal/server"
 	"github.com/llitllie/auth/internal/service"
 )
@@ -17,11 +19,19 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, data *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
-	authService := service.NewAuthService()
+func wireApp(confServer *conf.Server, confData *conf.Data, logger log.Logger) (*kratos.App, func(), error) {
+	client := data.NewEntClient(confData, logger)
+	dataData, cleanup, err := data.NewData(client, logger)
+	if err != nil {
+		return nil, nil, err
+	}
+	accountRepo := data.NewAccountRepo(dataData, logger)
+	accountUseCase := biz.NewAccountUseCase(accountRepo, logger)
+	authService := service.NewAuthService(accountUseCase, logger)
 	httpServer := server.NewHTTPServer(confServer, authService, logger)
 	grpcServer := server.NewGRPCServer(confServer, authService, logger)
 	app := newApp(logger, httpServer, grpcServer)
 	return app, func() {
+		cleanup()
 	}, nil
 }
