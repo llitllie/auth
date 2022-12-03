@@ -28,7 +28,6 @@ require (
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/hashicorp/hcl/v2 v2.15.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
 	github.com/zclconf/go-cty v1.12.1 // indirect
 	go.opentelemetry.io/otel v1.11.1 // indirect
