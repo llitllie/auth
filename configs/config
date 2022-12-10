@@ -8,4 +8,4 @@ server:
 data:
   database:
     driver: mysql
-    source: test:T@n123qaz@tcp(127.0.0.1:3306)/test?parseTime=True
+    source: test:test@tcp(127.0.0.1:3306)/test?parseTime=True
